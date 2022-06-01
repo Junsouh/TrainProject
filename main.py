@@ -21,9 +21,9 @@ if __name__ == "__main__":
 
     cropwidth = 600
 
-    pts = np.array([[int(width/2 - cropwidth), height], [int(width/2 - cropwidth), height-200], [int(width/2 + cropwidth - 200), height-200], [int(width/2 + cropwidth - 200), height]])
+    pts = np.array([[int(width/2 - cropwidth), height], [int(width/2 - cropwidth), height-200], [int(width/2 + cropwidth - 400), height-200], [int(width/2 + cropwidth - 400), height]])
     fourcc = cv.VideoWriter_fourcc(*'mp4v')
-    writer = cv.VideoWriter('output.mp4', fourcc, 30, (600, 200))
+    writer = cv.VideoWriter('output.mp4', fourcc, 30, (cropwidth * 2 - 400, 200))
 
 
     if cap.isOpened() == False:
@@ -38,8 +38,13 @@ if __name__ == "__main__":
         if ret == True:
 
             modified = frame.copy()
-            modified = increase_brightness(modified, value=20)
-            modified = modified[y:y+h, x:x+wi]
+            modified = increase_brightness(modified, value=40)
+            # modified = modified[y:y+h, x:x+wi]
+
+            grayImage = cv.cvtColor(modified, cv.COLOR_BGR2GRAY)
+            (thresh, bwimg) = cv.threshold(grayImage, 127, 255, cv.THRESH_BINARY)
+            kernel = np.ones((5, 5), np.uint8)
+            dilation = cv.dilate(bwimg, kernel, iterations=1)
 
             edges = cv.Canny(modified, 0, 255)
             linesP = cv.HoughLinesP(edges, rho=4, theta=np.pi / 180, threshold=43, minLineLength=20, maxLineGap=50)
@@ -48,8 +53,8 @@ if __name__ == "__main__":
                     l = linesP[i][0]
                     cv.line(modified, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
 
-            cv.imshow("output", modified)
-            writer.write(modified)
+            cv.imshow("output", dilation)
+            writer.write(bwimg)
             if cv.waitKey(25) & 0xFF == ord('q'):
                 break
 
