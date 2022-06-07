@@ -58,15 +58,20 @@ class LineComponent:
 def verify_angle(lineComponents, status):
     lineSeparation = 760
     if status == Status.Left:
-        lineSeparation = 750
+        lineSeparation = 740
     if status == Status.Right:
         lineSeparation = 770
     leftLines = []
     rightLines = []
+    lines = []
     for l in lineComponents:
-        if l.centroid.x < lineSeparation:
+        if line.angle > 82 and line.angle < 96:
+            continue
+        lines.append(l)
+    for l in lines:
+        if l.centroid.x < lineSeparation and l.angle > 90:
             leftLines.append(l)
-        if l.centroid.x >= lineSeparation:
+        if l.centroid.x >= lineSeparation and l.angle < 90:
             rightLines.append(l)
 
     if len(leftLines) > 0 and len(rightLines) > 0:
@@ -92,11 +97,7 @@ def verify_angle(lineComponents, status):
             return False
 
     else:
-        lines = []
-        for l in lineComponents:
-            if line.angle > 87 and line.angle < 93:
-                continue
-            lines.append(l)
+
         sum = 0
         for l in lines:
             sum += l.angle
@@ -133,6 +134,7 @@ if __name__ == "__main__":
     status = Status.Green
     toggle = False
     totalcount = 0
+    framecount = 0
     while cap.isOpened():
         rect = cv.boundingRect(pts)
         x, y, wi, h = rect
@@ -141,6 +143,7 @@ if __name__ == "__main__":
         # modified = cv.bitwise_not(frame)
 
         if ret == True:
+            framecount += 1
             # alpha = 1
             # beta = 60
             # # gamma = 1
@@ -175,7 +178,7 @@ if __name__ == "__main__":
             # cv.imshow('pil_find_edge', im_np)
             # cv.imwrite('pil_find_edge.png', im_np)
 
-            cv.threshold(im_np, 20, 100, cv.THRESH_BINARY, im_np)
+            cv.threshold(im_np, 20, 150, cv.THRESH_BINARY, im_np)
             # cv.imshow("threshold", im_np)
             # cv.imwrite('threshold.png', im_np)
             # (thresh, modified) = cv.threshold(modified, 50, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
@@ -220,7 +223,7 @@ if __name__ == "__main__":
                     if line.m < 3 and line.m > -3:
                         continue
 
-                    cv.line(frame, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
+                    # cv.line(frame, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
                     lines.append(line)
             if len(lines) > 0:
                 sum = 0
@@ -229,25 +232,25 @@ if __name__ == "__main__":
                 angle = sum / len(lines)
 
                 if angle > 80 and angle < 100:  # green (forward)
-                    if totalcount > 70:
+                    if totalcount > 66:
                         status = Status.Green
-                        cv.arrowedLine(frame, (1000, 600), (1000, 500), (0, 255, 0), 10)
+                        # cv.arrowedLine(frame, (1000, 600), (1000, 500), (0, 255, 0), 10)
                         cv.circle(frame, (1800, 100), 20, (0, 255, 0), -1)
                         totalcount = 0
                     elif status is Status.Green:
-                        cv.arrowedLine(frame, (1000, 600), (1000, 500), (0, 255, 0), 10)
+                        # cv.arrowedLine(frame, (1000, 600), (1000, 500), (0, 255, 0), 10)
                         cv.circle(frame, (1800, 100), 20, (0, 255, 0), -1)
                         totalcount = 0
                     elif toggle is True and status is Status.Right:
                         if count > 3:
-                            cv.arrowedLine(frame, (1000, 600), (1000, 500), (0, 255, 0), 10)
+                            # cv.arrowedLine(frame, (1000, 600), (1000, 500), (0, 255, 0), 10)
                             cv.circle(frame, (1800, 100), 20, (0, 255, 0), -1)
                             status = Status.Green
                             toggle = False
                             count = 0
                             totalcount += 1
                     elif toggle is True:
-                        cv.arrowedLine(frame, (1000, 600), (1000, 500), (0, 255, 0), 10)
+                        # cv.arrowedLine(frame, (1000, 600), (1000, 500), (0, 255, 0), 10)
                         cv.circle(frame, (1800, 100), 20, (0, 255, 0), -1)
                         status = Status.Green
                         toggle = False
@@ -258,10 +261,10 @@ if __name__ == "__main__":
                 if angle <= 80 and angle >= 0:  # yellow (left turn)
                     if status is Status.Left:
                         if verify_angle(lines, status):
-                            cv.arrowedLine(frame, (1000, 600), (950, 500), (0, 255, 255), 10)
+                            # cv.arrowedLine(frame, (1000, 600), (950, 500), (0, 255, 255), 10)
                             cv.circle(frame, (1800, 100), 20, (0, 255, 255), -1)
                     elif toggle is True:
-                        cv.arrowedLine(frame, (1000, 600), (950, 500), (0, 255, 255), 10)
+                        # cv.arrowedLine(frame, (1000, 600), (950, 500), (0, 255, 255), 10)
                         cv.circle(frame, (1800, 100), 20, (0, 255, 255), -1)
                         status = Status.Left
                         toggle = False
@@ -271,11 +274,11 @@ if __name__ == "__main__":
                 if angle >= 100 and angle < 180:  # yellow (right turn)
                     if status is Status.Right:
                         if verify_angle(lines, status):
-                            cv.arrowedLine(frame, (1000, 600), (1050, 500), (0, 255, 255), 10)
+                            # cv.arrowedLine(frame, (1000, 600), (1050, 500), (0, 255, 255), 10)
                             cv.circle(frame, (1800, 100), 20, (0, 255, 255), -1)
                             totalcount += 1
                     elif toggle is True:
-                        cv.arrowedLine(frame, (1000, 600), (1050, 500), (0, 255, 255), 10)
+                        # cv.arrowedLine(frame, (1000, 600), (1050, 500), (0, 255, 255), 10)
                         cv.circle(frame, (1800, 100), 20, (0, 255, 255), -1)
                         status = Status.Right
                         toggle = False
@@ -285,24 +288,29 @@ if __name__ == "__main__":
                         count += 1
 
             if status is Status.Green:
-                cv.arrowedLine(frame, (1000, 600), (1000, 500), (0, 255, 0), 10)
+                # cv.arrowedLine(frame, (1000, 600), (1000, 500), (0, 255, 0), 10)
                 cv.circle(frame, (1800, 100), 20, (0, 255, 0), -1)
             if status is Status.Left:
-                cv.arrowedLine(frame, (1000, 600), (950, 500), (0, 255, 255), 10)
+                # cv.arrowedLine(frame, (1000, 600), (950, 500), (0, 255, 255), 10)
                 cv.circle(frame, (1800, 100), 20, (0, 255, 255), -1)
             if status is Status.Right:
-                cv.arrowedLine(frame, (1000, 600), (1050, 500), (0, 255, 255), 10)
+                # cv.arrowedLine(frame, (1000, 600), (1050, 500), (0, 255, 255), 10)
                 cv.circle(frame, (1800, 100), 20, (0, 255, 255), -1)
                 totalcount += 1
             if count > 2: toggle = True
 
+            cv.putText(frame, str(framecount), (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                   1, (0, 0, 255), 2, cv2.LINE_AA)
             cv.imshow("output", frame)
+
             writer.write(frame)
             if cv.waitKey(25) & 0xFF == ord('q'):
                 break
 
         else:
             print("video ended")
+            print(framecount)
+
             break
 
     writer.release()
